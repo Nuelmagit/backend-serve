@@ -10,8 +10,13 @@ var mdAutenticacion = require('../middlewares/autentication');
 //Obtener Usuarios
 //=======================================================
 app.get('/', (req, res, next) => {
+    var desde = req.query.desde || 0;
+
+    desde = new Number(desde);
 
     Usuario.find({}, 'nombre email img role')
+        .skip(desde)
+        .limit(2)
         .exec((err, usuarios) => {
             if (err) {
                 return res.status(500).json({
@@ -21,10 +26,24 @@ app.get('/', (req, res, next) => {
                 });
             }
 
-            res.status(200).json({
-                ok: true,
-                usuario: usuarios
+            Usuario.count({}, (err, total) => {
+                if (err) {
+                    return res.status(500).json({
+                        ok: false,
+                        mensaje: 'Erro en base de datos',
+                        errors: err
+                    });
+                }
+                res.status(200).json({
+                    ok: true,
+                    usuario: usuarios,
+                    desde,
+                    total
+
+                });
             });
+
+
 
         });
 });
